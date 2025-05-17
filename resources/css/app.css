@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom fonts */
+@layer base {
+    .brand-font {
+        font-family: 'Playfair Display', serif;
+        letter-spacing: 2px;
+    }
+    .body-font {
+        font-family: 'Montserrat', sans-serif;
+    }
+}
+
+/* Custom components */
+@layer components {
+    .btn-primary {
+        @apply bg-sheila-primary text-white px-6 py-2 rounded hover:bg-purple-700 transition;
+    }
+    .active-nav {
+        @apply border-sheila-primary text-sheila-primary;
+    }
+}
+
+/* Custom utilities */
+@layer utilities {
+    .bg-sheila-primary {
+        background-color: #5e35b1;
+    }
+    .text-sheila-primary {
+        color: #5e35b1;
+    }
+    /* Add any other custom utilities here */
+}
+
+/* Optional: Add base styles for elements */
+@layer base {
+    h1, h2, h3 {
+        @apply brand-font;
+    }
+    body {
+        @apply body-font;
+    }
+}
