@@ -7,52 +7,72 @@ use App\Models\OrderItem;
 use App\Models\CartItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use App\Notifications\OrderStatusNotification;
 
 class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Auth::user()->orders()->with('items.product')->latest()->get();
+        $orders = Auth::user()->orders()
+            ->with('items.product')
+            ->latest()
+            ->paginate(10);
+
         return view('orders.index', compact('orders'));
     }
 
     public function show(Order $order)
     {
         $this->authorize('view', $order);
-        $order->load('items.product'); // Eager load items with products
+        $order->load('items.product');
         return view('orders.show', compact('order'));
     }
 
     public function checkout(Request $request)
     {
-        $request->validate([
-            'shipping_address' => 'required|string|max:255',
-            'payment_method' => 'required|string|in:credit_card,paypal,bank_transfer',
-        ]);
-
-        $user = Auth::user();
-        $cartItems = $user->cartItems()->with('product')->get();
+        $cartItems = Auth::user()->cartItems()->with('product')->get();
+        $subtotal = $cartItems->sum(function ($item) {
+            return $item->product->price * $item->quantity;
+        });
+        $discount = session('coupon_discount', 0);
+        $total = $subtotal - $discount;
 
         if ($cartItems->isEmpty()) {
             return redirect()->route('cart.index')->with('error', 'Your cart is empty.');
         }
 
-        // Calculate total with transaction
-        $total = $cartItems->sum(function ($item) {
-            if ($item->quantity > $item->product->stock) {
-                throw new \Exception("Not enough stock for product: {$item->product->name}");
-            }
-            return $item->product->price * $item->quantity;
-        });
+        if ($request->isMethod('get')) {
+            // Display checkout form
+            return view('checkout.form', compact('cartItems', 'subtotal', 'discount', 'total'));
+        }
 
-        // Create order within transaction
-        $order = \DB::transaction(function () use ($user, $request, $total, $cartItems) {
-            $order = $user->orders()->create([
+        // Handle POST request (process checkout)
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'address' => 'required|string',
+            'city' => 'required|string|max:255',
+        ]);
+
+        $order = DB::transaction(function () use ($request, $cartItems) {
+            $subtotal = $cartItems->sum(function ($item) {
+                if ($item->quantity > $item->product->stock_quantity) {
+                    throw new \Exception("Not enough stock for product: {$item->product->name}");
+                }
+                return $item->product->price * $item->quantity;
+            });
+
+            $discount = session('coupon_discount', 0);
+            $total = $subtotal - $discount;
+
+            $order = Auth::user()->orders()->create([
                 'total_amount' => $total,
-                'shipping_address' => $request->shipping_address,
-                'payment_method' => $request->payment_method,
+                'subtotal' => $subtotal,
+                'discount' => $discount,
+                'shipping_address' => $request->address, // Using 'address' instead of 'shipping_address' for consistency
+                'payment_method' => 'manual', // Default payment method; adjust as needed
                 'status' => 'pending',
+                'coupon_code' => session('coupon_code'),
             ]);
 
             foreach ($cartItems as $item) {
@@ -61,28 +81,21 @@ class OrderController extends Controller
                     'product_id' => $item->product_id,
                     'quantity' => $item->quantity,
                     'price' => $item->product->price,
+                    'customizations' => $item->customizations,
                 ]);
 
-                $item->product->decrement('stock', $item->quantity);
+                $item->product->decrement('stock_quantity', $item->quantity);
             }
 
-            $user->cartItems()->delete();
+            Auth::user()->cartItems()->delete();
+            session()->forget(['coupon_code', 'coupon_discount']);
+
             return $order;
         });
 
-        // Send notification
-        $user->notify(new OrderStatusNotification($order));
+        Auth::user()->notify(new OrderStatusNotification($order));
 
         return redirect()->route('orders.show', $order)
-            ->with('success', 'Order placed successfully!');
+            ->with('success', 'Order placed successfully! Admin will review your order soon.');
     }
-
-    // Future admin approval method (commented as in original)
-    /*
-    public function approve(Order $order) {
-        $order->update(['status' => 'approved']);
-        $order->user->notify(new OrderStatusNotification($order));
-        return back()->with('success', 'Order approved.');
-    }
-    */
 }

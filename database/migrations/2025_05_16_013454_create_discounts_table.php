@@ -19,13 +19,16 @@ return new class extends Migration
             $table->decimal('value', 8, 2);
             $table->dateTime('start_date');
             $table->dateTime('end_date');
+            $table->unsignedInteger('max_uses')->nullable();
+            $table->unsignedInteger('uses_count')->default(0);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
+            $table->softDeletes();
         });
 
         Schema::create('discount_product', function (Blueprint $table) {
-            $table->foreignId('discount_id')->constrained();
-            $table->foreignId('product_id')->constrained();
+            $table->foreignId('discount_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->primary(['discount_id', 'product_id']);
         });
     }
@@ -35,6 +38,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('discount_product');
         Schema::dropIfExists('discounts');
     }
 };

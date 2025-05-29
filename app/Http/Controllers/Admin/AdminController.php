@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -56,17 +57,17 @@ class AdminController extends Controller
         DB::transaction(function () use ($order) {
             $order->update(['status' => 'approved']);
 
-            // Send notification to user
+            // Notify user
             $order->user->notify(new OrderStatusNotification($order));
 
-            // Update inventory if needed
+            // Update product inventory
             foreach ($order->items as $item) {
                 $item->product->decrement('stock', $item->quantity);
             }
         });
 
         return redirect()
-            ->route('admin.orders')
+            ->route('admin.orders.index')
             ->with('success', 'Order #'.$order->id.' approved successfully.');
     }
 
@@ -78,7 +79,6 @@ class AdminController extends Controller
 
         $order->update($validated);
 
-        // Send notification if status changed
         if ($order->wasChanged('status')) {
             $order->user->notify(new OrderStatusNotification($order));
         }

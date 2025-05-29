@@ -1,51 +1,86 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\CartController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\WishlistController;
-use App\Http\Controllers\Admin\ProductController as AdminProductController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\{ProfileController, BlogController};
+use App\Http\Controllers\Frontend\ProductController as FrontendProductController;
+use App\Http\Controllers\{CartController, DashboardController, OrderController, WishlistController};
+use App\Http\Controllers\Admin\{
+    DashboardController as AdminDashboardController,
+    ProductController as AdminProductController,
+    OrderController as AdminOrderController,
+    BlogCategoryController,
+};
 
 Route::get('/', function () {
-    return view('welcome');
+    $featuredProducts = App\Models\Product::where('is_featured', true)
+        ->latest()
+        ->take(8)
+        ->get();
+
+    return view('welcome', ['featuredProducts' => $featuredProducts]);
+})->name('home');
+
+// Public routes
+Route::controller(BlogController::class)->group(function () {
+    Route::get('/blog', 'index')->name('blog.index');
+    Route::get('/blog/{slug}', 'show')->name('blog.show');
 });
 
-// Public product routes
-Route::get('/products', [ProductController::class, 'index'])->name('products.index');
-Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+Route::controller(FrontendProductController::class)->group(function () {
+    Route::get('/products', 'index')->name('products.index');
+    Route::get('/products/{product:slug}', 'show')->name('products.show');
+});
 
-// Dashboard route
-Route::get('/dashboard', [DashboardController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('dashboard');
+// Authenticated user routes (Buyer)
+Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-Route::middleware('auth')->group(function () {
-    // Profile routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::prefix('profile')->controller(ProfileController::class)->group(function () {
+        Route::get('/', 'edit')->name('profile.edit');
+        Route::patch('/', 'update')->name('profile.update');
+        Route::delete('/', 'destroy')->name('profile.destroy');
+    });
 
-    // Cart routes
-    Route::post('/cart/add/{product}', [CartController::class, 'add'])->name('cart.add');
-    Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-    Route::delete('/cart/{cartItem}', [CartController::class, 'destroy'])->name('cart.destroy');
+    Route::prefix('cart')->controller(CartController::class)->group(function () {
+        Route::post('/add/{product}', 'add')->name('cart.add');
+        Route::get('/', 'index')->name('cart.index');
+        Route::post('/apply-coupon', 'applyCoupon')->name('cart.applyCoupon');
+        Route::patch('/{cartItem}', 'update')->name('cart.update');
+        Route::delete('/{cartItem}', 'destroy')->name('cart.destroy');
+        Route::post('/remove-coupon', 'removeCoupon')->name('cart.removeCoupon');
+    });
 
-    // Order routes
-    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::match(['get', 'post'], '/checkout', [OrderController::class, 'checkout'])->name('checkout');
 
-    // Wishlist routes
-    Route::get('/wishlist', [WishlistController::class, 'index'])->name('wishlist.index');
-    Route::post('/wishlist/{product}', [WishlistController::class, 'store'])->name('wishlist.store');
-    Route::delete('/wishlist/{wishlistItem}', [WishlistController::class, 'destroy'])->name('wishlist.destroy');
+    Route::prefix('orders')->controller(OrderController::class)->group(function () {
+        Route::get('/', 'index')->name('orders.index');
+        Route::get('/{order}', 'show')->name('orders.show');
+    });
+
+    Route::prefix('wishlist')->controller(WishlistController::class)->group(function () {
+        Route::get('/', 'index')->name('wishlist.index');
+        Route::post('/{product}', 'store')->name('wishlist.store');
+        Route::delete('/{wishlistItem}', 'destroy')->name('wishlist.destroy');
+    });
 });
 
 // Admin routes
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::resource('products', AdminProductController::class)->except(['show']);
+    Route::get('/', function () {
+        return redirect()->route('admin.dashboard');
+    });
+
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+
+    Route::resource('products', AdminProductController::class);
+    Route::patch('products/{product}/restore', [AdminProductController::class, 'restore'])->name('products.restore');
+
+    Route::resource('orders', AdminOrderController::class)->except(['create', 'store']);
+    Route::patch('/orders/{order}/status', [AdminOrderController::class, 'updateStatus'])
+        ->name('orders.updateStatus');
+    Route::delete('/orders/{order}', [AdminOrderController::class, 'destroy'])->name('orders.destroy');
+
+    Route::resource('blog-categories', BlogCategoryController::class);
 });
 
 require __DIR__.'/auth.php';

@@ -3,11 +3,11 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\View;
+use Illuminate\Validation\ValidationException;
 
 class AuthenticatedSessionController extends Controller
 {
@@ -22,13 +22,34 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
-        $request->authenticate();
+        // Validate the request
+        $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
 
-        $request->session()->regenerate();
+        // Attempt to authenticate the user
+        if (Auth::attempt($request->only('email', 'password'), $request->filled('remember'))) {
+            // Authentication successful, regenerate session
+            $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+            $user = Auth::user();
+
+            // Redirect based on user role
+            if ($user->is_admin) {
+                return redirect()->intended('/admin/dashboard');
+            }
+
+            // Default redirect for buyers or others
+            return redirect()->intended('/dashboard');
+        }
+
+        // Authentication failed, return with error
+        throw ValidationException::withMessages([
+            'email' => 'Invalid email or password.',
+        ]);
     }
 
     /**
@@ -39,7 +60,6 @@ class AuthenticatedSessionController extends Controller
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
-
         $request->session()->regenerateToken();
 
         return redirect('/');

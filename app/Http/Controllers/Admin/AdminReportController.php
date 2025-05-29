@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Admin;
 
+use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\User;
@@ -21,16 +22,16 @@ class AdminReportController extends Controller
 
         $totalSales = $orders->sum('total_amount');
         $orderCount = $orders->count();
-        $productsSold = $orders->sum(function($order) {
-            return $order->orderItems->sum('quantity');
-        });
+        $productsSold = $orders->sum(fn($order) => $order->orderItems->sum('quantity'));
 
-        $topProducts = Product::withCount(['orderItems as sales' => function($query) use ($startDate, $endDate) {
-            $query->whereHas('order', function($q) use ($startDate, $endDate) {
-                $q->whereBetween('created_at', [$startDate, $endDate])
-                    ->where('status', '!=', 'cancelled');
-            });
-        }])->orderBy('sales', 'desc')->take(5)->get();
+        $topProducts = Product::withCount([
+            'orderItems as sales' => function($query) use ($startDate, $endDate) {
+                $query->whereHas('order', function($q) use ($startDate, $endDate) {
+                    $q->whereBetween('created_at', [$startDate, $endDate])
+                        ->where('status', '!=', 'cancelled');
+                });
+            }
+        ])->orderBy('sales', 'desc')->take(5)->get();
 
         return view('admin.reports.sales', compact(
             'startDate',

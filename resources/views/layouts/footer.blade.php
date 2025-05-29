@@ -2,7 +2,7 @@
     <div class="container mx-auto px-6">
         <div class="flex flex-col md:flex-row justify-between items-center">
             <div class="mb-6 md:mb-0">
-                <span class="text-2xl font-bold brand-font">SHEILA</span>
+                <span class="text-2xl font-bold brand-font">SHIELA</span>
                 <p class="mt-2 text-gray-600">Unseen outfits for unseen forces</p>
             </div>
             <div class="flex space-x-6">
@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="border-t border-gray-200 mt-8 pt-8 text-center text-gray-500">
-            <p>&copy; {{ date('Y') }} Sheila. All rights reserved.</p>
+            <p>&copy; {{ date('Y') }} Shiela. All rights reserved.</p>
         </div>
     </div>
 </footer>

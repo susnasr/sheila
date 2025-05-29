@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>SHEILA - Official outfit site of Exalters</title>
+    <title>SHIELA - Official outfit site of Exalters</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
     <style>
@@ -32,7 +32,7 @@
 <!-- Navigation -->
 <nav class="container mx-auto px-6 py-4">
     <div class="flex justify-between items-center">
-        <div class="text-2xl font-bold brand-font">SHEILA</div>
+        <div class="text-2xl font-bold brand-font">SHIELA</div>
         <div class="flex space-x-4">
             <a href="{{ route('login') }}" class="px-4 py-2">Login</a>
             <a href="{{ route('register') }}" class="px-4 py-2 bg-black text-white rounded">Register</a>
@@ -40,7 +40,6 @@
     </div>
 </nav>
 
-<!-- Hero Section -->
 <div class="hero">
     <div class="max-w-2xl px-4">
         <h1 class="text-4xl md:text-5xl font-bold mb-6 brand-font">Unseen outfits for unseen forces</h1>
@@ -51,32 +50,57 @@
     </div>
 </div>
 
-<!-- Features Section -->
-<div class="container mx-auto px-6 py-16">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
-        <div class="p-6">
-            <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
-            </svg>
-            <h3 class="text-xl font-semibold mb-2">Free Shipping</h3>
-            <p class="text-gray-600">On all orders over $50</p>
+<section class="container mx-auto px-4 py-12">
+    <h2 class="text-3xl font-bold text-center mb-8 brand-font">Featured Collection</h2>
+
+    @if($featuredProducts->count())
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            @foreach ($featuredProducts as $product)
+                <div class="border rounded-lg p-4 shadow hover:shadow-md transition duration-300 product-card">
+                    <a href="{{ route('products.show', $product->slug) }}" class="block">
+                        <div class="product-image-container mb-4">
+                            @php
+                                $imageToShow = $product->image
+                                    ? asset('product_pics/' . $product->image)
+                                    : 'https://via.placeholder.com/300x300?text=No+Image';
+                            @endphp
+                            <img src="{{ $product->main_image }}"
+                                 alt="{{ $product->name }}"
+                                 class="rounded w-full h-auto object-cover"
+                                 style="aspect-ratio: 1 / 1;" />
+                        </div>
+                    </a>
+
+                    <div class="p-4">
+                        <a href="{{ route('products.show', $product->slug) }}" class="block">
+                            <h3 class="text-lg font-semibold hover:text-gray-600">{{ $product->name }}</h3>
+                        </a>
+                        <p class="text-gray-600 mt-2">${{ number_format($product->price, 2) }}</p>
+
+                        @if($product->category)
+                            <span class="text-sm text-gray-500">{{ $product->category->name }}</span>
+                        @endif
+
+                        <form action="{{ route('cart.add', $product->id) }}" method="POST" class="mt-4">
+                            @csrf
+                            <button type="submit" class="w-full bg-black text-white px-4 py-2 rounded hover:bg-gray-800 transition">
+                                Add to Cart
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
         </div>
-        <div class="p-6">
-            <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
-            </svg>
-            <h3 class="text-xl font-semibold mb-2">Easy Returns</h3>
-            <p class="text-gray-600">30-day return policy</p>
+
+        <div class="text-center mt-8">
+            <a href="{{ route('products.index') }}" class="inline-block px-6 py-3 bg-black text-white rounded hover:bg-gray-800 transition">
+                View All Products
+            </a>
         </div>
-        <div class="p-6">
-            <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-            <h3 class="text-xl font-semibold mb-2">Secure Payment</h3>
-            <p class="text-gray-600">100% secure checkout</p>
-        </div>
-    </div>
-</div>
+    @else
+        <p class="text-center text-gray-600">No featured products available</p>
+    @endif
+</section>
 
 @include('layouts.footer')
 </body>
