@@ -10,19 +10,28 @@
             <!-- Name -->
             <div class="mb-4">
                 <x-input-label for="name" :value="__('Name')" />
-                <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" required autofocus />
+                <x-text-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
+                @error('name')
+                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Email -->
             <div class="mb-4">
                 <x-input-label for="email" :value="__('Email')" />
-                <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" required />
+                <x-text-input id="email" class="block mt-1 w-full" type="email" name="email" :value="old('email')" required />
+                @error('email')
+                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Password -->
             <div class="mb-4">
                 <x-input-label for="password" :value="__('Password')" />
                 <x-text-input id="password" class="block mt-1 w-full" type="password" name="password" required />
+                @error('password')
+                <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
+                @enderror
             </div>
 
             <!-- Confirm Password -->
@@ -38,12 +47,12 @@
 
             <!-- Login Link -->
             <div class="text-center mt-4">
-            <span class="text-sm text-gray-600">
-                {{ __('Already registered?') }}
-                <a href="{{ route('login') }}" class="text-blue-600 hover:underline">
-                    {{ __('Login') }}
-                </a>
-            </span>
+                <span class="text-sm text-gray-600">
+                    {{ __('Already registered?') }}
+                    <a href="{{ route('login') }}" class="text-blue-600 hover:underline">
+                        {{ __('Login') }}
+                    </a>
+                </span>
             </div>
         </form>
     </div>

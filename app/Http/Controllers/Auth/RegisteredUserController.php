@@ -31,7 +31,21 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => [
+                'required',
+                'string',
+                'lowercase',
+                'email',
+                'max:255',
+                'unique:'.User::class,
+                function ($attribute, $value, $fail) {
+                    $allowedDomains = ['gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'aol.com', 'icloud.com'];
+                    $domain = substr(strrchr($value, "@"), 1);
+                    if (!in_array($domain, $allowedDomains)) {
+                        $fail('Please use a valid email domain (e.g., gmail.com, yahoo.com, hotmail.com, outlook.com, aol.com, icloud.com).');
+                    }
+                },
+            ],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
@@ -45,6 +59,7 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect(route('dashboard', absolute: false));
+        return redirect(route('dashboard', absolute: false))
+            ->with('success', 'Welcome ' . $user->name);
     }
 }

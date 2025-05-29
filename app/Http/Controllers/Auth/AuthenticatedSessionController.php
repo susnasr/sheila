@@ -37,13 +37,15 @@ class AuthenticatedSessionController extends Controller
 
             $user = Auth::user();
 
-            // Redirect based on user role
+            // Redirect based on user role with success message
             if ($user->is_admin) {
-                return redirect()->intended('/admin/dashboard');
+                return redirect()->intended('/admin/dashboard')
+                    ->with('success', 'Welcome ' . $user->name);
             }
 
             // Default redirect for buyers or others
-            return redirect()->intended('/dashboard');
+            return redirect()->intended('/dashboard')
+                ->with('success', 'Welcome ' . $user->name);
         }
 
         // Authentication failed, return with error
