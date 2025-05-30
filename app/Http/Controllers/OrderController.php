@@ -95,7 +95,7 @@ class OrderController extends Controller
 
         Auth::user()->notify(new OrderStatusNotification($order));
 
-        return redirect()->route('orders.show', $order)
-            ->with('success', 'Order placed successfully! Admin will review your order soon.');
+        return redirect('/dashboard')
+            ->with('success', '✅ Your order has been placed successfully!');
     }
 }

@@ -11,7 +11,6 @@ return new class extends Migration
         Schema::table('orders', function (Blueprint $table) {
             $table->decimal('subtotal', 10, 2)->after('total_amount');
             $table->decimal('discount', 10, 2)->default(0)->after('subtotal');
-            $table->string('coupon_code')->nullable()->after('discount');
         });
     }
 

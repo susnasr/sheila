@@ -15,7 +15,6 @@ class Order extends Model
         'status',
         'shipping_address',
         'payment_method',
-        'coupon_code',
         'carrier',
         'tracking_number'
     ];

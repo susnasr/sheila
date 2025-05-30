@@ -23,7 +23,6 @@
                 <p><span class="font-bold text-green-600">Discount:</span> ${{ number_format($order->discount ?? 0.00, 2) }}</p>
                 <p><span class="font-bold text-gold-500">Shipping Address:</span> {{ $order->shipping_address }}</p>
                 <p><span class="font-bold text-gold-500">Payment Method:</span> {{ $order->payment_method }}</p>
-                <p><span class="font-bold text-gold-500">Coupon Code:</span> {{ $order->coupon_code ?? 'None' }}</p>
             </div>
         </div>
 

@@ -33,7 +33,7 @@
                                 <div class="flex items-center space-x-4">
                                     <form action="{{ route('cart.update', $item->id) }}" method="POST" class="flex items-center">
                                         @csrf
-                                        @method('PATCH') <!-- Add this to override POST with PATCH -->
+                                        @method('PATCH')
                                         <button type="submit" name="action" value="decrease"
                                                 class="px-2 py-1 bg-gray-300 text-gray-800 rounded-l hover:bg-gray-400">-</button>
                                         <span class="px-4 text-gray-800">{{ $item->quantity }}</span>
@@ -51,34 +51,6 @@
                         </div>
                     @endforeach
                 </div>
-            </div>
-
-            <!-- Coupon Section -->
-            <div class="bg-gradient-to-br from-gray-100 via-gray-200 to-white shadow-xl rounded-xl p-6 mb-6">
-                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <svg class="w-8 h-8 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0-1.1-.9-2-2-2s-2.9 1-2 2c.9 1 2.9 1 2 2 1.1 0 2-.9 2-2z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 13c1.1 0 2-.9 2-2s-.9-2-2-2-2 1-2 2c0 1.1.9 2 2 2z"></path>
-                    </svg>
-                    Apply Coupon
-                </h2>
-                <form action="{{ route('cart.applyCoupon') }}" method="POST" class="flex space-x-2">
-                    @csrf
-                    <input type="text" name="code" placeholder="Enter coupon code"
-                           class="flex-1 p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <button type="submit" class="bg-gold-500 text-black px-4 py-2 rounded-xl hover:bg-gold-600 transition duration-300 font-semibold">
-                        Apply Coupon
-                    </button>
-                </form>
-                @if (session('coupon_code'))
-                    <div class="mt-4 flex justify-between items-center">
-                        <span class="text-gray-600">Applied Coupon: {{ session('coupon_code') }}</span>
-                        <form action="{{ route('cart.removeCoupon') }}" method="POST">
-                            @csrf
-                            <button type="submit" class="text-red-500 hover:text-red-700 font-medium">Remove Coupon</button>
-                        </form>
-                    </div>
-                @endif
             </div>
 
             <!-- Order Summary -->
@@ -103,7 +75,7 @@
                         <span>₱{{ number_format($total, 2) }}</span>
                     </div>
                 </div>
-                <form action="{{ route('checkout') }}" method="POST" class="mt-6">
+                <form action="{{ route('checkout') }}" method="GET" class="mt-6">
                     @csrf
                     <button type="submit" class="w-full text-center bg-blue-500 text-black px-4 py-2 rounded-xl hover:bg-gold-600 transition duration-300 font-semibold">
                         Proceed to Checkout

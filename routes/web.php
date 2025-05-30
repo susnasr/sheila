@@ -44,7 +44,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::prefix('cart')->controller(CartController::class)->group(function () {
         Route::post('/add/{product}', 'add')->name('cart.add');
         Route::get('/', 'index')->name('cart.index');
-        Route::post('/apply-coupon', 'applyCoupon')->name('cart.applyCoupon');
         Route::patch('/{cartItem}', 'update')->name('cart.update');
         Route::delete('/{cartItem}', 'destroy')->name('cart.destroy');
         Route::post('/remove-coupon', 'removeCoupon')->name('cart.removeCoupon');

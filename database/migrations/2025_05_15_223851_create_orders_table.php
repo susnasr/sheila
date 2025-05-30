@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('status')->default('pending');
             $table->text('shipping_address');
             $table->string('payment_method');
-            $table->string('coupon_code')->nullable();
             $table->string('carrier')->nullable();
             $table->string('tracking_number')->nullable();
             $table->timestamps();
